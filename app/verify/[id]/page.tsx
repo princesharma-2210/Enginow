@@ -30,6 +30,17 @@ const getVerificationData = (id: string) => {
       status: "Verified",
       issueDate: "September 19, 2025",
     },
+    ENGINTHRM25DS229: {
+      name: "Deeksha Singh",
+      photo: "/deeksha.png",
+      domain: "HR Manager Internship",
+      duration: "1 Month",
+      startDate: "September 2025",
+      endDate: "October 2025",
+      certificateId: "HRM1M22930K",
+      status: "Verified",
+      issueDate: "October 25, 2025",
+    },
   }
 
   return verifications[id] || null
