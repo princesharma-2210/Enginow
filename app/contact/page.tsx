@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
 
 export default function ContactPage() {
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -25,21 +26,62 @@ export default function ContactPage() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Here you would typically send the form data to your backend
-    console.log("Form submitted:", formData)
-    toast({
-      title: "Message Sent",
-      description: "Thank you for contacting us. We'll get back to you soon!",
-    })
-    // Reset form
-    setFormData({
-      name: "",
-      email: "",
-      subject: "",
-      message: "",
-    })
+    
+    // Validate form data
+    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        toast({
+          title: "Message Sent Successfully! ✅",
+          description: "Thank you for contacting us. We'll get back to you soon!",
+        })
+        
+        // Reset form
+        setFormData({
+          name: "",
+          email: "",
+          subject: "",
+          message: "",
+        })
+      } else {
+        toast({
+          title: "Failed to Send Message",
+          description: result.error || "Please try again or contact us directly at care@enginow.in",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Contact form error:", error)
+      toast({
+        title: "Network Error",
+        description: "Please check your internet connection and try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -68,6 +110,7 @@ export default function ContactPage() {
                   required
                   value={formData.name}
                   onChange={handleChange}
+                  disabled={isSubmitting}
                 />
               </div>
               <div className="space-y-2">
@@ -80,6 +123,7 @@ export default function ContactPage() {
                   required
                   value={formData.email}
                   onChange={handleChange}
+                  disabled={isSubmitting}
                 />
               </div>
               <div className="space-y-2">
@@ -91,6 +135,7 @@ export default function ContactPage() {
                   required
                   value={formData.subject}
                   onChange={handleChange}
+                  disabled={isSubmitting}
                 />
               </div>
               <div className="space-y-2">
@@ -103,10 +148,20 @@ export default function ContactPage() {
                   required
                   value={formData.message}
                   onChange={handleChange}
+                  disabled={isSubmitting}
                 />
               </div>
-              <Button type="submit" className="w-full">
-                <Send className="mr-2 h-4 w-4" /> Send Message
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="mr-2 h-4 w-4" /> Send Message
+                  </>
+                )}
               </Button>
             </form>
           </CardContent>
