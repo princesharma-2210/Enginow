@@ -16,18 +16,19 @@ export async function POST(request: NextRequest) {
 
     // Create transporter using Gmail SMTP
     // Note: In production, you should use environment variables for credentials
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.GMAIL_USER || "your-email@gmail.com", // Replace with actual email
-        pass: process.env.GMAIL_APP_PASSWORD || "your-app-password", // Replace with actual app password
+        user: process.env.GMAIL_USER || "shaarmprince@gmail.com", // Replace with actual email
+        pass: process.env.GMAIL_APP_PASSWORD || "cintyqtfcnvbayav", // Replace with actual app password
       },
     })
 
     // Email content
     const mailOptions = {
-      from: `"Enginow Contact Form" <${process.env.GMAIL_USER || "your-email@gmail.com"}>`,
+      from: `"Enginow Contact Form" <${process.env.GMAIL_USER || "shaarmprince@gmail.com"}>`,
       to: "care@enginow.in",
+      // to: "pp0903557@gmail.com",
       subject: `Contact Form: ${subject}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
