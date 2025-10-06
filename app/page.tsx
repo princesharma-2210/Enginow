@@ -465,7 +465,7 @@ export default function Home() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="section-padding bg-white relative overflow-hidden">
+      {/* <section className="section-padding bg-white relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-mesh opacity-30"></div>
         <div className="container px-4 md:px-6 relative">
           <AnimatedElement
@@ -563,7 +563,161 @@ export default function Home() {
             </Carousel>
           </div>
         </div>
-      </section>
+      </section> */}
+
+      <section className="section-padding bg-white relative overflow-hidden">
+  <div className="absolute inset-0 bg-gradient-mesh opacity-30"></div>
+  <div className="container px-4 md:px-6 relative">
+    {/* Heading */}
+    <AnimatedElement
+      animation="fade-up"
+      className="flex flex-col items-center justify-center space-y-4 text-center"
+    >
+      <Badge
+        variant="outline"
+        className="bg-orange/10 border-orange text-orange px-4 py-1 mb-2 rounded-full"
+      >
+        <Lightbulb className="h-3.5 w-3.5 mr-1.5 text-yellow animate-pulse-slow" />
+        Testimonials
+      </Badge>
+      <div className="space-y-2">
+        <AnimatedText
+          text="What Our Students Say"
+          className="text-3xl font-bold tracking-tighter md:text-4xl gradient-text-accent"
+          animation="fade-up"
+          staggerChildren={0.03}
+        />
+        <AnimatedElement animation="fade-up" delay={0.3}>
+          <p className="max-w-[900px] text-muted-foreground md:text-xl">
+            See what our students have to say about their learning experience.
+          </p>
+        </AnimatedElement>
+      </div>
+    </AnimatedElement>
+
+    {/* Continuous slider */}
+    <div className="relative w-full max-w-6xl mx-auto overflow-hidden group py-10">
+      <div
+        className="flex gap-6 animate-slide-left"
+        style={{ width: `${3 * 2 * 100}%` }}
+      >
+        {[...[
+          {
+            name: "Sonam Yadav",
+            college: "Amity, Noida",
+            review:
+              "Enginow helped me understand complex DSA concepts that I was struggling with. The visual explanations are excellent!",
+            image: "/student3.jpg",
+            rating: 5,
+          },
+          {
+            name: "Arun Kumar",
+            college: "PSIT",
+            review:
+              "The concept notes are concise and to the point. Saved me hours of reading through textbooks. Highly recommended!",
+            image: "/student1.jpg",
+            rating: 5,
+          },
+          {
+            name: "Kirti Pilani",
+            college: "KIET",
+            review:
+              "The premium courses are worth every penny. The depth of content and practical examples helped me ace my exams.",
+            image: "/student2.jpg",
+            rating: 4,
+          },
+        ], ...[
+          {
+            name: "Sonam Yadav",
+            college: "Amity, Noida",
+            review:
+              "Enginow helped me understand complex DSA concepts that I was struggling with. The visual explanations are excellent!",
+            image: "/student3.jpg",
+            rating: 5,
+          },
+          {
+            name: "Arun Kumar",
+            college: "PSIT",
+            review:
+              "The concept notes are concise and to the point. Saved me hours of reading through textbooks. Highly recommended!",
+            image: "/student1.jpg",
+            rating: 5,
+          },
+          {
+            name: "Kirti Pilani",
+            college: "KIET",
+            review:
+              "The premium courses are worth every penny. The depth of content and practical examples helped me ace my exams.",
+            image: "/student2.jpg",
+            rating: 4,
+          },
+        ]].map((t, i) => (
+          <div
+            key={i}
+            className="min-w-[220px] sm:min-w-[260px] md:min-w-[300px] max-w-xs bg-white/80 backdrop-blur-md shadow-lg rounded-2xl p-6 flex flex-col items-center text-center relative overflow-hidden"
+          >
+            {/* Gradient blob */}
+            <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-orange/10 to-pink/10 rounded-bl-full -z-10 blob-animation"></div>
+
+            {/* Profile */}
+            <div className="mb-4 relative">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-orange to-pink blur-md opacity-30"></div>
+              <Image
+                src={t.image}
+                alt={t.name}
+                width={70}
+                height={70}
+                className="rounded-full border-2 border-gray-200 relative"
+              />
+            </div>
+
+            {/* Rating */}
+            <div className="flex mb-3">
+              {Array.from({ length: 5 }).map((_, j) => (
+                <Star
+                  key={j}
+                  className={`h-4 w-4 ${
+                    j < t.rating
+                      ? "text-yellow-500 fill-yellow-500"
+                      : "text-gray-300"
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* Review */}
+            <p className="mb-3 text-muted-foreground italic text-sm">
+              “{t.review}”
+            </p>
+
+            {/* Name & College */}
+            <h4 className="font-semibold gradient-text-accent">{t.name}</h4>
+            <p className="text-sm text-gray-500">{t.college}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Animation styles */}
+    <style jsx>{`
+      @keyframes slide-left {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+      .animate-slide-left {
+        animation: slide-left 25s linear infinite;
+      }
+      .group:hover .animate-slide-left {
+        animation-play-state: paused;
+      }
+    `}</style>
+  </div>
+</section>
+
 
       {/* CTA Section */}
       <section className="section-padding relative overflow-hidden">

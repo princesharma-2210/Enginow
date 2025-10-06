@@ -255,8 +255,8 @@ export default function JobsPage() {
             <CardFooter>
               <Button asChild className="w-full">
                 <Link
-                  href="https://www.linkedin.com/company/enginow"
-                  target="_blank"
+                  href={`/jobs/enroll/${job.id}`}
+                  // target="_blank"
                   rel="noopener noreferrer"
                 >
                   Apply Now
