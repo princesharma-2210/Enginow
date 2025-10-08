@@ -152,66 +152,55 @@ export default function EnrollmentPage() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setIsLoading(true)
+    e.preventDefault()
+    setIsLoading(true)
 
-  try {
-    const enrollmentData = {
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      phone: formData.phone,
-      whatsapp: formData.whatsapp || null,
-      linkedin: formData.linkedin || null,
-      city: formData.city,
-      state: formData.state,
-      education: formData.education,
-      experience: formData.experience,
-      motivation: formData.motivation || null,
-      programId: params.programId,
-      referralCode: referralCodeValid ? formData.referralCode : null,
-      agreeTerms: formData.agreeTerms,
-      agreeMarketing: formData.agreeMarketing,
-    }
+    try {
+      const enrollmentData = {
+        ...formData,
+        programId: params.programId as string,
+        referralCodeValid: referralCodeValid,
+      }
 
-    console.log("Sending enrollment payload:", enrollmentData) // Debug
-
-    const response = await fetch("/api/enrollments", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(enrollmentData),
-    })
-
-    const result = await response.json()
-    console.log("API response:", result)
-
-    if (result.success) {
-      toast({
-        title: "Enrollment Successful!",
-        description: "Your enrollment has been submitted successfully.",
+      const response = await fetch("/api/enrollments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(enrollmentData),
       })
 
-      router.push(`/training/payment/${result.data.enrollmentId}`)
-    } else {
+      const result = await response.json()
+
+      if (result.success) {
+        toast({
+          title: "Enrollment Successful!",
+          description:
+            "Your enrollment has been submitted successfully. You will receive a confirmation email shortly.",
+        })
+
+        // Redirect to a success page or back to training
+        setTimeout(() => {
+          router.push(`/training/payment/${result.data.enrollmentId}`)
+        }, 1000)
+      } else {
+        toast({
+          title: "Enrollment Failed",
+          description: result.error || "Failed to submit enrollment",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Enrollment error:", error)
       toast({
-        title: "Enrollment Failed",
-        description: result.error || "Failed to submit enrollment",
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       })
+    } finally {
+      setIsLoading(false)
     }
-  } catch (error) {
-    console.error("Enrollment error:", error)
-    toast({
-      title: "Error",
-      description: "An unexpected error occurred. Please try again.",
-      variant: "destructive",
-    })
-  } finally {
-    setIsLoading(false)
   }
-}
 
   const isFormValid =
     formData.firstName &&

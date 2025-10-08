@@ -1,63 +1,58 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useUser, SignInButton } from "@clerk/nextjs";
 import {
   ArrowLeft,
-  CheckCircle,
   Loader2,
   Gift,
   CreditCard,
   User,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { useToast } from "@/hooks/use-toast"
-import Link from "next/link"
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
 
 interface Course {
-  id: string
-  title: string
-  description: string
-//   duration: string
-  price: number
-//   originalPrice: number
-//   features: string[]
-//   highlights: string[]
-  isFree: boolean
-  youtubeLink?: string
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  isFree: boolean;
+  youtubeLink?: string;
 }
 
 export default function CourseEnrollmentPage() {
-  const params = useParams()
-  const router = useRouter()
-  const { toast } = useToast()
+  const params = useParams();
+  const router = useRouter();
+  const { toast } = useToast();
+  const { isLoaded, isSignedIn, user } = useUser();
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [courseLoading, setCourseLoading] = useState(true)
-  const [course, setCourse] = useState<Course | null>(null)
-  const [referralCodeValid, setReferralCodeValid] = useState<boolean | null>(null)
-  const [checkingReferral, setCheckingReferral] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
+  const [courseLoading, setCourseLoading] = useState(true);
+  const [course, setCourse] = useState<Course | null>(null);
+  const [referralCodeValid, setReferralCodeValid] = useState<boolean | null>(null);
+  const [checkingReferral, setCheckingReferral] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -74,60 +69,69 @@ export default function CourseEnrollmentPage() {
     referralCode: "",
     agreeTerms: false,
     agreeMarketing: false,
-  })
+  });
+
+  // ✅ Always call hooks first — no early return before hooks
+  useEffect(() => {
+    if (isLoaded && user) {
+      setFormData((prev) => ({
+        ...prev,
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.primaryEmailAddress?.emailAddress || "",
+      }));
+    }
+  }, [isLoaded, user]);
 
   useEffect(() => {
-    fetchCourse()
-  }, [params.courseId])
+    if (params.courseId) {
+      fetchCourse();
+    }
+  }, [params.courseId]);
 
   const fetchCourse = async () => {
     try {
-      setCourseLoading(true)
-      const response = await fetch(`/api/courses/${params.courseId}`)
-      const result = await response.json()
+      setCourseLoading(true);
+      const response = await fetch(`/api/courses/${params.courseId}`);
+      const result = await response.json();
 
       if (result.success) {
-        setCourse(result.data as Course)
+        setCourse(result.data as Course);
       } else {
         toast({
           title: "Error",
           description: result.error || "Course not found",
           variant: "destructive",
-        })
-        // router.push("/courses")
+        });
+        router.push("/courses");
       }
     } catch (error) {
-      console.error("Error fetching course:", error)
+      console.error("Error fetching course:", error);
       toast({
         title: "Error",
         description: "Failed to load course details",
         variant: "destructive",
-      })
-      router.push("/courses")
+      });
+      router.push("/courses");
     } finally {
-      setCourseLoading(false)
+      setCourseLoading(false);
     }
-  }
+  };
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
-    if (field === "referralCode") {
-      setReferralCodeValid(null)
-    }
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (field === "referralCode") setReferralCodeValid(null);
+  };
 
   const validateReferralCode = async (code: string) => {
     if (!code.trim()) {
-      setReferralCodeValid(null)
-      return
+      setReferralCodeValid(null);
+      return;
     }
-    setCheckingReferral(true)
+
+    setCheckingReferral(true);
     try {
-      // Simulating API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const validCodes = [
         "FRIEND99",
@@ -138,149 +142,133 @@ export default function CourseEnrollmentPage() {
         "NEWUSER",
         "DISCOUNT20",
         "SPECIAL30",
-      ]
+      ];
 
-      const isValid = validCodes.includes(code.toUpperCase())
-      setReferralCodeValid(isValid)
+      const isValid = validCodes.includes(code.toUpperCase());
+      setReferralCodeValid(isValid);
 
       if (isValid) {
         toast({
           title: "✅ Valid Referral Code!",
           description: "You'll receive a special discount.",
-        })
+        });
       } else {
         toast({
           title: "❌ Invalid Referral Code",
           description: "The referral code is not valid or expired.",
           variant: "destructive",
-        })
+        });
       }
     } catch (error) {
-      console.error("Error validating referral:", error)
-      setReferralCodeValid(false)
+      console.error("Error validating referral:", error);
+      setReferralCodeValid(false);
     } finally {
-      setCheckingReferral(false)
+      setCheckingReferral(false);
     }
-  }
+  };
 
   const handleReferralCodeBlur = () => {
     if (formData.referralCode.trim()) {
-      validateReferralCode(formData.referralCode.trim())
+      validateReferralCode(formData.referralCode.trim());
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!course) return
-    setIsLoading(true)
+    e.preventDefault();
+    if (!course) return;
 
+    setIsLoading(true);
     try {
       const enrollmentData = {
         ...formData,
         courseId: params.courseId as string,
         referralCodeValid,
-      }
+      };
 
-    //   const response = await fetch("/api/courses/contact", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify(enrollmentData),
-    //   })
-    const response = await fetch("/api/courses/contact", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(formData),
-})
+      const response = await fetch("/api/courses/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(enrollmentData),
+      });
 
-
-      const result = await response.json()
+      const result = await response.json();
 
       if (result.success) {
         toast({
           title: "Enrollment Successful!",
-          description:
-            "You will receive a confirmation email soon.",
-        })
+          description: "You will receive a confirmation email soon.",
+        });
         setTimeout(() => {
-          router.push(`/courses/payment/${course.id}`)
-        }, 100)
+          router.push(`/courses/payment/${course.id}`);
+        }, 100);
       } else {
         toast({
           title: "Enrollment Failed",
           description: result.error || "Failed to submit enrollment",
           variant: "destructive",
-        })
+        });
       }
     } catch (error) {
-      console.error("Enrollment error:", error)
+      console.error("Enrollment error:", error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
-
-  const isFormValid =
-    !!formData.firstName &&
-    !!formData.lastName &&
-    !!formData.email &&
-    !!formData.phone &&
-    !!formData.city &&
-    !!formData.state &&
-    !!formData.education &&
-    !!formData.experience &&
-    formData.agreeTerms
+  };
 
   const getDiscountedPrice = () => {
-    if (referralCodeValid && course) {
-      const discount = 0.1 // 10%
-      return Math.round(course.price * (1 - discount))
-    }
-    return course?.price || 0
+    if (referralCodeValid && course) return Math.round(course.price * 0.9);
+    return course?.price || 0;
+  };
+
+  // ✅ Early returns AFTER hooks are defined
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-[300px]">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
   }
 
-  const getDiscountAmount = () => {
-    if (referralCodeValid && course) {
-      const discount = 0.1
-      return Math.round(course.price * discount)
-    }
-    return 0
+  if (!isSignedIn) {
+    return (
+      <div className="container py-8 max-w-4xl text-center">
+        <p className="text-red-600 mb-4">
+          You must be signed in to enroll in a course.
+        </p>
+        <SignInButton>
+          <Button>Sign In</Button>
+        </SignInButton>
+      </div>
+    );
   }
 
   if (courseLoading) {
     return (
-      <div className="container py-8 max-w-4xl">
-        <div className="flex items-center justify-center min-h-[300px]">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading course details …</p>
-          </div>
-        </div>
+      <div className="container py-8 max-w-4xl text-center">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+        <p className="text-muted-foreground">Loading course details…</p>
       </div>
-    )
+    );
   }
 
   if (!course) {
     return (
-      <div className="container py-8 max-w-4xl">
-        <div className="text-center">
-          <p className="text-red-500 mb-4">Course not found</p>
-          <Link href="/courses">
-            <Button>Back to Courses</Button>
-          </Link>
-        </div>
+      <div className="container py-8 max-w-4xl text-center">
+        <p className="text-red-500 mb-4">Course not found</p>
+        <Link href="/courses">
+          <Button>Back to Courses</Button>
+        </Link>
       </div>
-    )
+    );
   }
 
   return (
     <div className="container py-8 max-w-6xl">
-      {/* Header */}
       <div className="mb-8">
         <Link
           href="/courses"
@@ -294,6 +282,7 @@ export default function CourseEnrollmentPage() {
           Complete your enrollment to start with {course.title}
         </p>
       </div>
+
 
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Form */}

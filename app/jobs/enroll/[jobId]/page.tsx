@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useUser, SignInButton } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -27,7 +28,8 @@ const JOBS = [
     salary: "₹12-18 LPA",
     experience: "3-5 years",
     skills: ["React", "Node.js", "MongoDB", "AWS"],
-    description: "Join our dynamic team to build scalable web applications using modern technologies.",
+    description:
+      "Join our dynamic team to build scalable web applications using modern technologies.",
     posted: "2 days ago",
     applicants: 45,
   },
@@ -40,7 +42,8 @@ const JOBS = [
     salary: "₹15-22 LPA",
     experience: "2-4 years",
     skills: ["Python", "Machine Learning", "SQL", "Tableau"],
-    description: "Analyze complex datasets and build predictive models to drive business insights.",
+    description:
+      "Analyze complex datasets and build predictive models to drive business insights.",
     posted: "1 week ago",
     applicants: 32,
   },
@@ -53,7 +56,8 @@ const JOBS = [
     salary: "₹15,000/month",
     experience: "0-1 years",
     skills: ["React", "JavaScript", "CSS", "Git"],
-    description: "Great opportunity for fresh graduates to work on exciting projects.",
+    description:
+      "Great opportunity for fresh graduates to work on exciting projects.",
     posted: "3 days ago",
     applicants: 78,
   },
@@ -66,7 +70,8 @@ const JOBS = [
     salary: "₹10-16 LPA",
     experience: "2-4 years",
     skills: ["Docker", "Kubernetes", "AWS", "Jenkins"],
-    description: "Manage and optimize our cloud infrastructure and deployment pipelines.",
+    description:
+      "Manage and optimize our cloud infrastructure and deployment pipelines.",
     posted: "5 days ago",
     applicants: 23,
   },
@@ -79,7 +84,8 @@ const JOBS = [
     salary: "₹8-14 LPA",
     experience: "1-3 years",
     skills: ["React Native", "Flutter", "iOS", "Android"],
-    description: "Develop cross-platform mobile applications for our growing user base.",
+    description:
+      "Develop cross-platform mobile applications for our growing user base.",
     posted: "1 week ago",
     applicants: 56,
   },
@@ -87,7 +93,9 @@ const JOBS = [
 
 export default function JobDetail({ params }: { params: { jobId: string } }) {
   const router = useRouter()
+  const { isSignedIn, user } = useUser()
   const job = JOBS.find((j) => j.id === parseInt(params.jobId))
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -100,6 +108,29 @@ export default function JobDetail({ params }: { params: { jobId: string } }) {
   const [submitting, setSubmitting] = useState(false)
 
   if (!job) return <p className="text-center py-12">Job not found</p>
+
+  // Route protection - if not signed in
+  if (!isSignedIn) {
+    return (
+      <div className="container py-12 text-center">
+        <p className="text-lg font-semibold mb-4 text-red-600">
+          You must be signed in to apply for this job.
+        </p>
+        <SignInButton mode="modal">
+          <Button size="lg">Sign In to Apply</Button>
+        </SignInButton>
+      </div>
+    )
+  }
+
+  // Auto-fill user data if signed in
+  if (user && !formData.name && !formData.email) {
+    setFormData((prev) => ({
+      ...prev,
+      name: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+      email: user.primaryEmailAddress?.emailAddress || "",
+    }))
+  }
 
   const handleChange = (field: string, value: string | File | boolean | null) =>
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -139,15 +170,6 @@ export default function JobDetail({ params }: { params: { jobId: string } }) {
 
       if (result.success) {
         alert(result.message)
-        setFormData({
-          name: "",
-          email: "",
-          phone: "",
-          education: "",
-          experience: "",
-          resume: null,
-          agreeTerms: false,
-        })
         router.push("/jobs")
       } else {
         alert(result.error)
@@ -205,6 +227,7 @@ export default function JobDetail({ params }: { params: { jobId: string } }) {
               <Label htmlFor="education">Highest Education *</Label>
               <Select
                 onValueChange={(value) => handleChange("education", value)}
+                required
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select your education level" />
@@ -224,6 +247,7 @@ export default function JobDetail({ params }: { params: { jobId: string } }) {
               <Label htmlFor="experience">Work Experience *</Label>
               <Select
                 onValueChange={(value) => handleChange("experience", value)}
+                required
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select experience" />
