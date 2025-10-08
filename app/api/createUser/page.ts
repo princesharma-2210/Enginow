@@ -1,5 +1,5 @@
-// /app/api/create-user/route.ts
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 
@@ -9,28 +9,25 @@ export async function POST() {
     const clerkUser = await currentUser();
 
     if (!userId || !clerkUser) {
-      return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401 });
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    // Connect to MongoDB
     await connectDB();
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ clerkId: userId });
+    const existingUser = await User.findOne({ clerkId: userId }).lean();
     if (existingUser) {
-      return Response.json({ message: "User already exists" });
+      return NextResponse.json({ message: "User already exists", user: existingUser });
     }
 
-    // Create new user document
     const newUser = await User.create({
       clerkId: userId,
       name: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim(),
       email: clerkUser.emailAddresses[0]?.emailAddress,
     });
 
-    return Response.json({ message: "User created successfully", user: newUser });
+    return NextResponse.json({ message: "User created successfully", user: newUser.toObject() });
   } catch (err: any) {
     console.error("❌ Error creating user:", err);
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    return NextResponse.json({ error: err.message || "Internal server error" }, { status: 500 });
   }
 }
