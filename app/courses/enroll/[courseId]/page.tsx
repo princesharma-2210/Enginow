@@ -712,9 +712,20 @@ export default function CourseEnrollmentPage() {
                 <p className="text-sm text-blue-700 mb-3">
                   Questions about the course? Our team is here.
                 </p>
-                <Button variant="outline" size="sm" className="w-full">
-                  Contact Support
-                </Button>
+                <Button
+    variant="outline"
+    size="sm"
+    className="w-full"
+    onClick={() =>
+      window.open(
+        "https://wa.me/918935069570?text=Hey%20*Enginow*%20!%20I%20need%20a%20help",
+        "_blank"
+      )
+    }
+  >
+    Contact Support
+  </Button>
+
               </div>
             </CardContent>
           </Card>

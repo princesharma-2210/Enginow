@@ -116,7 +116,7 @@ export default function Home() {
                   size="lg"
                   className="border-primary text-primary hover:bg-primary/10 rounded-full"
                 >
-                  <Link href="/learn">Start Learning</Link>
+                  <Link href="/dashboard">Go to DashBoard</Link>
                 </Button>
               </AnimatedElement>
 

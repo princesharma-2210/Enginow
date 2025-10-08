@@ -137,8 +137,63 @@ export default function CourseDetailPage() {
           <li key={i}>{task}</li>
         ))}
       </ul>
+            {/* Embedded YouTube Video */}
+      <div className="aspect-video w-full mb-6">
+        <iframe
+          className="w-full h-full rounded-xl"
+          src={course.youtubeLink}
+          title={course.title}
+          allowFullScreen
+        />
+      </div>
 
-      <Button className="mt-6" on onClick={disableGlobalCursorStyles}>Mark as Completed</Button>
+      {/* Timeline */}
+      {course.timeline && (
+        <>
+          <h2 className="text-xl font-semibold mt-6">⏱ Timeline</h2>
+          <ul className="list-disc pl-6 mt-2">
+            {course.timeline.map((item: { time: string; label: string }, i: number) => (
+              <li key={i}>
+                <span className="font-mono">{item.time}</span> — {item.label}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {/* Topics */}
+      <h2 className="text-xl font-semibold mt-6">📌 Topics Covered</h2>
+      <ul className="list-disc pl-6 mt-2">
+        {course.topics.map((topic: string, i: number) => (
+          <li key={i}>{topic}</li>
+        ))}
+      </ul>
+      {/* <h2 className="text-xl font-semibold mt-6">📌 Topics Covered</h2>
+      <ul className="list-disc pl-6 mt-2">
+        <li>{coursesData.descri}</li>
+      </ul> */}
+
+
+
+      {/* Exercises */}
+      <h2 className="text-xl font-semibold mt-6">📝 Exercises</h2>
+      <ul className="list-disc pl-6 mt-2">
+        {course.exercises.map((ex: string, i: number) => (
+          <li key={i}>{ex}</li>
+        ))}
+      </ul>
+
+      {/* Tasks */}
+      <h2 className="text-xl font-semibold mt-6">✅ Tasks</h2>
+      <ul className="list-disc pl-6 mt-2">
+        {course.tasks.map((task: string, i: number) => (
+          <li key={i}>{task}</li>
+        ))}
+      </ul>
+
+<Button className="mt-6" onClick={disableGlobalCursorStyles}>
+  Mark as Completed
+</Button>
     </div>
   )
 }

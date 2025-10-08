@@ -9,14 +9,19 @@ export async function POST(request: NextRequest) {
     const email = formData.get("email") as string
     const phone = formData.get("phone") as string
     const jobTitle = formData.get("jobTitle") as string
+    const education = formData.get("education") as string
+    const experience = formData.get("experience") as string
     const resume = formData.get("resume") as File
 
     // Basic validation
-    if (!name || !email || !phone || !jobTitle || !resume) {
-      return NextResponse.json({ success: false, error: "Please fill all required fields." }, { status: 400 })
+    if (!name || !email || !phone || !jobTitle || !education || !experience || !resume) {
+      return NextResponse.json(
+        { success: false, error: "Please fill all required fields." },
+        { status: 400 }
+      )
     }
 
-    // Gmail transporter
+    // Gmail transporter setup
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -27,10 +32,10 @@ export async function POST(request: NextRequest) {
 
     const submittedAt = new Date().toLocaleString()
 
+    // Mail content
     const mailOptions = {
       from: `"Enginow Job Application" <${process.env.GMAIL_USER}>`,
-    //   to:"pp0903557@gmail.com",
-      to: "care@enginow.in",
+      to: "care@enginow.in", // or your HR email
       subject: `New Job Application: ${name} - ${jobTitle}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 700px; margin: auto; padding: 20px;">
@@ -44,6 +49,8 @@ export async function POST(request: NextRequest) {
             <li><strong>Email:</strong> ${email}</li>
             <li><strong>Phone:</strong> ${phone}</li>
             <li><strong>Job Applied:</strong> ${jobTitle}</li>
+            <li><strong>Education:</strong> ${education}</li>
+            <li><strong>Experience:</strong> ${experience}</li>
           </ul>
 
           <hr style="margin: 30px 0;" />
@@ -56,7 +63,7 @@ export async function POST(request: NextRequest) {
       attachments: [
         {
           filename: resume.name,
-          content: await resume.arrayBuffer().then(Buffer.from),
+          content: Buffer.from(await resume.arrayBuffer()),
         },
       ],
       replyTo: email,
@@ -64,9 +71,15 @@ export async function POST(request: NextRequest) {
 
     await transporter.sendMail(mailOptions)
 
-    return NextResponse.json({ success: true, message: "Application submitted successfully!" })
+    return NextResponse.json({
+      success: true,
+      message: "Application submitted successfully!",
+    })
   } catch (error) {
-    console.error("Error sending email:", error)
-    return NextResponse.json({ success: false, error: "Something went wrong. Please try again later." }, { status: 500 })
+    console.error("❌ Error sending email:", error)
+    return NextResponse.json(
+      { success: false, error: "Something went wrong. Please try again later." },
+      { status: 500 }
+    )
   }
 }

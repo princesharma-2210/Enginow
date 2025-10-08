@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import connectDB from "@/lib/mongodb"
 import Enrollment from "@/models/Enrollment"
+import { randomBytes } from "crypto"
 
 // Valid referral codes
 const VALID_REFERRAL_CODES = [
@@ -105,137 +106,96 @@ export async function POST(request: NextRequest) {
     }
 
     // Connect to database
-    try {
-      await connectDB()
-      console.log("✅ Database connected successfully")
-    } catch (dbError) {
-      console.error("❌ Database connection failed:", dbError)
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Database connection failed. Please try again.",
-        },
-        { status: 500 },
-      )
-    }
+    // try {
+    //   await connectDB()
+    //   console.log("✅ Database connected successfully")
+    // } catch (dbError) {
+    //   console.error("❌ Database connection failed:", dbError)
+    //   return NextResponse.json(
+    //     {
+    //       success: false,
+    //       error: "Database connection failed. Please try again.",
+    //     },
+    //     { status: 500 },
+    //   )
+    // }
 
-    // Validate referral code if provided
+    // // Validate referral code if provided
+    // if (body.referralCode) {
+    //   body.referralCodeValid = VALID_REFERRAL_CODES.includes(body.referralCode.toUpperCase())
+    //   body.referralCode = body.referralCode.toUpperCase()
+    //   console.log("🎁 Referral code processed:", body.referralCode, "Valid:", body.referralCodeValid)
+    // }
+
+    // // Check for duplicate enrollment
+    // try {
+    //   const existingEnrollment = await Enrollment.findOne({
+    //     email: body.email,
+    //     programId: body.programId,
+    //   })
+
+    //   if (existingEnrollment) {
+    //     console.log("⚠️ Duplicate enrollment detected")
+    //     return NextResponse.json(
+    //       {
+    //         success: false,
+    //         error: "You have already enrolled in this program with this email address.",
+    //       },
+    //       { status: 400 },
+    //     )
+    //   }
+    //   console.log("✅ No duplicate enrollment found")
+    // } catch (duplicateError) {
+    //   console.error("❌ Error checking duplicates:", duplicateError)
+    //   // Continue with enrollment even if duplicate check fails
+    // }
+    await connectDB()
+
     if (body.referralCode) {
       body.referralCodeValid = VALID_REFERRAL_CODES.includes(body.referralCode.toUpperCase())
       body.referralCode = body.referralCode.toUpperCase()
-      console.log("🎁 Referral code processed:", body.referralCode, "Valid:", body.referralCodeValid)
     }
 
-    // Check for duplicate enrollment
-    try {
-      const existingEnrollment = await Enrollment.findOne({
-        email: body.email,
-        programId: body.programId,
-      })
-
-      if (existingEnrollment) {
-        console.log("⚠️ Duplicate enrollment detected")
-        return NextResponse.json(
-          {
-            success: false,
-            error: "You have already enrolled in this program with this email address.",
-          },
-          { status: 400 },
-        )
-      }
-      console.log("✅ No duplicate enrollment found")
-    } catch (duplicateError) {
-      console.error("❌ Error checking duplicates:", duplicateError)
-      // Continue with enrollment even if duplicate check fails
-    }
-
-    // Create new enrollment
-    try {
-      console.log("📝 Creating new enrollment...")
-      const enrollment = new Enrollment(body)
-      await enrollment.save()
-      console.log("✅ Enrollment saved successfully with ID:", enrollment._id)
-
-      // Get program data for response
-      const programData = TRAINING_PROGRAMS[body.programId] || {
-        title: "Training Program",
-        duration: "TBD",
-        price: "TBD",
-      }
-
-      // Log enrollment details for manual follow-up
-      console.log("\n🎉 NEW ENROLLMENT SUCCESS!")
-      console.log("=".repeat(50))
-      console.log(`Enrollment ID: ${enrollment.enrollmentId}`)
-      console.log(`Student: ${body.firstName} ${body.lastName}`)
-      console.log(`Email: ${body.email}`)
-      console.log(`Phone: ${body.phone}`)
-      console.log(`Program: ${programData.title}`)
-      console.log(`City: ${body.city}, ${body.state}`)
-      console.log(`Education: ${body.education}`)
-      console.log(`Experience: ${body.experience}`)
-      if (body.referralCode) {
-        console.log(`Referral: ${body.referralCode} (${body.referralCodeValid ? "Valid" : "Invalid"})`)
-        if (body.referralCodeValid) {
-          console.log(`Discount Applied: ${enrollment.discountApplied}%`)
-        }
-      }
-      console.log("=".repeat(50))
-
-      return NextResponse.json(
-        {
-          success: true,
-          data: enrollment,
-          message: "Enrollment created successfully! You will be contacted within 24-48 hours.",
-        },
-        { status: 201 },
-      )
-    } catch (saveError) {
-      console.error("❌ Error saving enrollment:", saveError)
-
-      // Handle specific MongoDB errors
-      if (saveError.name === "ValidationError") {
-        const validationErrors = Object.values(saveError.errors).map((err: any) => err.message)
-        console.error("❌ Validation errors:", validationErrors)
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Validation failed: " + validationErrors.join(", "),
-          },
-          { status: 400 },
-        )
-      }
-
-      if (saveError.code === 11000) {
-        console.error("❌ Duplicate key error")
-        return NextResponse.json(
-          {
-            success: false,
-            error: "You have already enrolled in this program with this email address.",
-          },
-          { status: 400 },
-        )
-      }
-
+    const existingEnrollment = await Enrollment.findOne({
+      email: body.email,
+      programId: body.programId,
+    })
+    if (existingEnrollment) {
       return NextResponse.json(
         {
           success: false,
-          error: "Failed to save enrollment. Please try again.",
+          error: "You have already enrolled in this program with this email address.",
         },
-        { status: 500 },
+        { status: 400 }
       )
     }
-  } catch (error: any) {
-    console.error("❌ Unexpected enrollment error:", error)
+
+    console.log("📝 Creating new enrollment...")
+
+    // ✅ Generate enrollment ID
+    const enrollmentId = `ENR-${Date.now()}-${randomBytes(3).toString("hex").toUpperCase()}`
+    const enrollment = new Enrollment({ ...body, enrollmentId })
+
+    await enrollment.save()
+    console.log("✅ Enrollment saved successfully:", enrollmentId)
+
     return NextResponse.json(
       {
-        success: false,
-        error: "An unexpected error occurred. Please try again.",
+        success: true,
+        data: enrollment,
+        message: "Enrollment created successfully! You will be contacted within 24–48 hours.",
       },
-      { status: 500 },
+      { status: 201 }
+    )
+  } catch (error: any) {
+    console.error("❌ Error during enrollment:", error)
+    return NextResponse.json(
+      { success: false, error: error.message || "Server error" },
+      { status: 500 }
     )
   }
 }
+
 
 export async function GET(request: NextRequest) {
   try {

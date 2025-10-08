@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ------------------- Base Styles ------------------- */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -25,20 +26,17 @@
     --ring: 270 75% 47%;
     --radius: 0.75rem;
   }
-}
 
-@layer base {
-  * {
-    @apply border-border;
-  }
   body {
     @apply bg-background text-foreground;
   }
+
   .font-kolka {
     font-family: var(--font-kolka), "Poppins", "Helvetica", "Arial", sans-serif;
   }
 }
 
+/* ------------------- Components ------------------- */
 @layer components {
   .gradient-heading {
     @apply bg-gradient-to-r from-purple-light via-primary to-purple-dark bg-clip-text text-transparent;
@@ -88,7 +86,6 @@
     @apply relative before:absolute before:-inset-[1px] before:rounded-[inherit] before:bg-gradient-to-r before:from-primary before:to-secondary before:content-[''];
   }
 
-  /* New enhanced components */
   .glass-card {
     @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-lg;
   }
@@ -151,5 +148,44 @@
 
   .glow-on-hover-accent {
     @apply hover:shadow-neon-accent transition-shadow duration-300;
+  }
+}
+
+/* ------------------- Utilities ------------------- */
+@layer utilities {
+  /* Custom border color utility */
+  .border-border {
+    border-color: hsl(var(--border));
+  }
+
+  /* Global shimmer animation for elements */
+  .animate-shimmer {
+    animation: shimmer 2s linear infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  /* Morph blob animation */
+  .animate-morph-blob {
+    animation: morph-blob 8s ease-in-out infinite;
+  }
+
+  @keyframes morph-blob {
+    0% {
+      border-radius: 60% 40% 30% 70%/60% 30% 70% 40%;
+    }
+    50% {
+      border-radius: 30% 60% 70% 40%/50% 60% 30% 60%;
+    }
+    100% {
+      border-radius: 60% 40% 30% 70%/60% 30% 70% 40%;
+    }
   }
 }

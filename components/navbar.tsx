@@ -10,6 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
+import { SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
 
 const routes = [
   { name: "Home", path: "/" },
@@ -51,10 +52,7 @@ export default function Navbar() {
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut",
-      },
+      transition: { duration: 0.5, ease: "easeOut" },
     },
   }
 
@@ -63,11 +61,7 @@ export default function Navbar() {
     visible: (i: number) => ({
       opacity: 1,
       y: 0,
-      transition: {
-        delay: 0.1 + i * 0.1,
-        duration: 0.3,
-        ease: "easeOut",
-      },
+      transition: { delay: 0.1 + i * 0.1, duration: 0.3, ease: ["easeOut"] },
     }),
   }
 
@@ -76,18 +70,11 @@ export default function Navbar() {
     visible: {
       opacity: 1,
       scale: 1,
-      transition: {
-        delay: 0.2,
-        duration: 0.5,
-        type: "spring",
-        stiffness: 200,
-      },
+      transition: { delay: 0.2, duration: 0.5, type: "spring", stiffness: 200 },
     },
   }
 
-  if (!isMounted) {
-    return null
-  }
+  if (!isMounted) return null
 
   return (
     <motion.header
@@ -96,10 +83,11 @@ export default function Navbar() {
       variants={navVariants}
       className={cn(
         "sticky top-0 z-50 w-full transition-all duration-500",
-        scrolled ? "nav-glassmorphism py-2" : "bg-transparent py-4",
+        scrolled ? "nav-glassmorphism py-2" : "bg-transparent py-4"
       )}
     >
       <div className="container flex items-center justify-between">
+        {/* Logo */}
         <motion.div variants={logoVariants}>
           <Link href="/" className="flex items-center">
             <div className="relative flex items-center">
@@ -132,7 +120,9 @@ export default function Navbar() {
                     <button
                       className={cn(
                         "nav-pill group flex items-center gap-1",
-                        pathname.startsWith(route.path) ? "nav-pill-active" : "nav-pill-inactive",
+                        pathname.startsWith(route.path)
+                          ? "nav-pill-active"
+                          : "nav-pill-inactive"
                       )}
                     >
                       {route.name}
@@ -144,7 +134,11 @@ export default function Navbar() {
                     className="w-48 bg-white/90 backdrop-blur-md border border-white/20"
                   >
                     {route.submenu.map((item) => (
-                      <DropdownMenuItem key={item.path} asChild className="focus:bg-primary/10">
+                      <DropdownMenuItem
+                        key={item.path}
+                        asChild
+                        className="focus:bg-primary/10"
+                      >
                         <Link href={item.path}>{item.name}</Link>
                       </DropdownMenuItem>
                     ))}
@@ -155,16 +149,26 @@ export default function Navbar() {
               <motion.div key={route.path} custom={i} variants={itemVariants}>
                 <Link
                   href={route.path}
-                  className={cn("nav-pill", pathname === route.path ? "nav-pill-active" : "nav-pill-inactive")}
+                  className={cn(
+                    "nav-pill",
+                    pathname === route.path
+                      ? "nav-pill-active"
+                      : "nav-pill-inactive"
+                  )}
                 >
                   {route.name}
                 </Link>
               </motion.div>
-            ),
+            )
           )}
         </nav>
 
-        <motion.div variants={itemVariants} custom={routes.length} className="hidden md:flex items-center gap-3">
+        {/* Right Section (Desktop) */}
+        <motion.div
+          variants={itemVariants}
+          custom={routes.length}
+          className="hidden md:flex items-center gap-3"
+        >
           <Button
             variant="ghost"
             size="icon"
@@ -172,16 +176,24 @@ export default function Navbar() {
             className="rounded-full hover:bg-primary/10"
           >
             <Search className="h-5 w-5" />
-            <span className="sr-only">Search</span>
           </Button>
 
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button size="sm" className="gradient-button text-white rounded-full px-6 shadow-md">
-              <Link href="/contact" className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4" />
-                Get Started
-              </Link>
-            </Button>
+            <SignedOut>
+              <SignUpButton mode="modal">
+                <Button
+                  size="sm"
+                  className="gradient-button text-white rounded-full px-6 shadow-md"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Get Started
+                </Button>
+              </SignUpButton>
+            </SignedOut>
+
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
           </motion.div>
         </motion.div>
 
@@ -191,10 +203,12 @@ export default function Navbar() {
             <Button
               variant="ghost"
               size="icon"
-              className={cn("h-9 w-9 rounded-full", scrolled ? "hover:bg-primary/10" : "hover:bg-white/20")}
+              className={cn(
+                "h-9 w-9 rounded-full",
+                scrolled ? "hover:bg-primary/10" : "hover:bg-white/20"
+              )}
             >
               <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle menu</span>
             </Button>
           </SheetTrigger>
           <SheetContent
@@ -237,79 +251,51 @@ export default function Navbar() {
                 className="rounded-full hover:bg-primary/10"
               >
                 <Search className="h-5 w-5" />
-                <span className="sr-only">Search</span>
               </Button>
             </div>
 
             <nav className="flex flex-col gap-2 mt-6 mr-6">
-              {routes.map((route, i) =>
-                route.submenu ? (
-                  <motion.div
-                    key={route.path}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 + i * 0.05 }}
-                    className="flex flex-col"
+              {routes.map((route, i) => (
+                <motion.div
+                  key={route.path}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 + i * 0.05 }}
+                >
+                  <Link
+                    href={route.path}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      "py-3 px-4 font-medium text-base rounded-lg transition-colors",
+                      pathname === route.path
+                        ? "bg-primary text-white"
+                        : "text-foreground hover:bg-primary/5 hover:text-primary"
+                    )}
                   >
-                    <div className="font-medium text-base py-3 px-4 rounded-lg bg-primary/5">{route.name}</div>
-                    <div className="ml-4 flex flex-col gap-1 mt-1 mb-2">
-                      {route.submenu.map((item, j) => (
-                        <motion.div
-                          key={item.path}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.1 + i * 0.05 + j * 0.03 }}
-                        >
-                          <Link
-                            href={item.path}
-                            onClick={() => setOpen(false)}
-                            className="py-2 px-4 text-sm text-muted-foreground hover:text-primary rounded-lg hover:bg-primary/5 transition-colors"
-                          >
-                            {item.name}
-                          </Link>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key={route.path}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 + i * 0.05 }}
-                  >
-                    <Link
-                      href={route.path}
-                      onClick={() => setOpen(false)}
-                      className={cn(
-                        "py-3 px-4 font-medium text-base rounded-lg transition-colors",
-                        pathname === route.path
-                          ? "bg-primary text-white"
-                          : "text-foreground hover:bg-primary/5 hover:text-primary",
-                      )}
-                    >
-                      {route.name}
-                    </Link>
-                  </motion.div>
-                ),
-              )}
+                    {route.name}
+                  </Link>
+                </motion.div>
+              ))}
 
+              {/* Mobile Clerk Auth */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 + routes.length * 0.05 }}
                 className="mt-6"
               >
-                <Button className="w-full gradient-button text-white rounded-lg shadow-md" asChild>
-                  <Link
-                    href="/contact"
-                    onClick={() => setOpen(false)}
-                    className="flex items-center justify-center gap-2"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    Get Started
-                  </Link>
-                </Button>
+                <SignedOut>
+                  <SignUpButton mode="modal">
+                    <Button className="w-full gradient-button text-white rounded-lg shadow-md">
+                      <Sparkles className="h-4 w-4" />
+                      Get Started
+                    </Button>
+                  </SignUpButton>
+                </SignedOut>
+
+                <SignedIn>
+                  <UserButton />
+                </SignedIn>
               </motion.div>
             </nav>
           </SheetContent>
