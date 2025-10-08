@@ -1,3 +1,4 @@
+// /app/api/createUser/route.ts
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
